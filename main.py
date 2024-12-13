@@ -7,6 +7,7 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml') 
 
 cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
 #init sumbu
 sumbu_x = 0
@@ -19,8 +20,32 @@ height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 print('height :', height)
 print('width :', width)
 
-while cap.isOpened(): 
+
+def move_x(center, pos):
+    print(center, pos)
+    if pos < center:
+        print('kurang dari')
+        selisih = -((center - pos) / 10)
+        print(selisih)
+        move = -1
+        if selisih > -5:
+            move = 0
+    elif pos > center:
+        print('lebih dari')
+        selisih = abs(pos - center) / 10
+        print(selisih)
+        move = 1
+        if selisih < 5:
+            move = 0
+    else:
+        move = 0
+    return move
+
+while True: 
     ret, img = cap.read() 
+
+    # flip frame
+    img = cv2.flip(img, 1)
 
     # convert to gray scale of each frames
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -29,8 +54,8 @@ while cap.isOpened():
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
     # reset sumbu apabila tidak ada wajah
-    if faces == ():
-        print(f'{time.time()} wajah tidak ada')
+    if len(faces) == 0:
+        # print(f'{time.time()} wajah tidak ada')
         sumbu_x = 0
         sumbu_y = 0
         servo_x = 0
@@ -85,7 +110,8 @@ while cap.isOpened():
         servo_x = int(sumbu_x * 0.375)
         servo_y = int(sumbu_y * 0.28125)
 
-        print(f'{time.time()} wajah ada')
+        # print(f'{time.time()} wajah ada')
+        print(move_x(width / 2, sumbu_x))
 
     # Print sumbu
     cv2.putText(img, f'sumbu x : {sumbu_x}', (12,30), cv2.FONT_HERSHEY_COMPLEX, 1, (255,0,0), 2) 
@@ -94,6 +120,7 @@ while cap.isOpened():
     # Print servo
     cv2.putText(img, f'servo x : {servo_x}', (12,90), cv2.FONT_HERSHEY_COMPLEX, 1, (255,0,0), 2) 
     cv2.putText(img, f'servo y : {servo_y}', (12,120), cv2.FONT_HERSHEY_COMPLEX, 1, (255,0,0), 2) 
+    cv2.circle(img, (0, 0), 10, (255, 0, 0), -1)  # Blue marker at (0,0)
 
     cv2.imshow('img',img)
 
